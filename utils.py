@@ -12,7 +12,7 @@ from math import radians, cos, sin, asin, sqrt
 from scipy.spatial.distance import euclidean
 import itertools
 
-def showExecTime(startPoint, initialString = "", verbose=True):
+def show_exec_time(startPoint, initialString = "", verbose=True):
     """
     Compute the execution time from an initial starting point.
     You can also pass me a string to print out at the end of computation.
@@ -33,7 +33,7 @@ def showExecTime(startPoint, initialString = "", verbose=True):
     minutes = int(minutes % 60)
     seconds = round(seconds % 60, 2)
     if verbose:
-        print("\n- "+initialString+" Execution time: %sh %sm %ss -" % (hours, minutes, seconds))
+        print "\n- "+initialString+" Execution time: %sh %sm %ss -" % (hours, minutes, seconds)
     return eex - startPoint
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -195,11 +195,11 @@ def plot_confusion_matrix(cm, classes, normalize=False, title="",
 
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
+        print "Normalized confusion matrix"
     else:
-        print('Confusion matrix, without normalization')
+        print 'Confusion matrix, without normalization'
 
-    print(cm)
+    print cm
 
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
@@ -280,7 +280,7 @@ def test_compare_cluster():
             {'name' : 'I', 'label': 0}, 
     ]
     result = compare_clusters(c1, c2)
-    assert(len(result[2]) == len(c1) and result[3] == 1)
+    assert len(result[2]) == len(c1) and result[3] == 1
     
     
     
@@ -297,7 +297,7 @@ def test_compare_cluster():
             {'name' : 'I', 'label': 3}, 
     ]
     result = compare_clusters(c1, c2)
-    assert(len(result[2]) == len(c1) - 1 and result[3] == (len(c2)-1)/len(c1))
+    assert len(result[2]) == len(c1) - 1 and result[3] == (len(c2)-1)/len(c1)
     
     
     
@@ -315,7 +315,7 @@ def test_compare_cluster():
             {'name' : 'D', 'label': 0},
     ]
     result = compare_clusters(c1, c2)
-    assert(len(result[2]) == len(c1) and result[3] == (len(c2))/len(c1))
+    assert len(result[2]) == len(c1) and result[3] == (len(c2))/len(c1)
     
     # Exit the test case
     pass
