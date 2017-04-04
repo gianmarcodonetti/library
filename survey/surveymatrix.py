@@ -24,6 +24,7 @@ def create_survey_matrix(data, value_type='actual', grouping_cols=['name', 'macr
     for group_name, grp in data.groupby(grouping_cols):
         user_name = filter(lambda x: x in printable, group_name[0])
         question = ('\n').join(group_name[1:])
+        question = filter(lambda x: x in printable, question)
         if user_name not in name_index:
             name_index.append(user_name)
             actual_matrix.append([])
@@ -92,13 +93,12 @@ class SurveyMatrix(object):
             bad_el = sum([x ** 2 for x in self.matrix[r] if x < 0])
             row_goodness[r] = bad_el + good_el
         sorted_row_good = sorted(row_goodness.items(), key=operator.itemgetter(1))
-
         matrix_row_sorted = []
         for i in range(len(sorted_row_good)):
             row = sorted_row_good[i][0]
             matrix_row_sorted.append(self.matrix[row])
         return SurveyMatrix(min_value=self.min_value, max_value=self.max_value, matrix=np.array(matrix_row_sorted),
-                            survey_title=self.survey_title)
+                            survey_title=self.survey_title, questions=self.questions, users=self.users)
 
     def sort_by_col_variance(self):
         matrix_t = np.array(self.matrix).transpose()
@@ -106,13 +106,13 @@ class SurveyMatrix(object):
         for c in range(len(matrix_t)):
             columns_variance[c] = list_variance(matrix_t[c])
         sorted_col_var = sorted(columns_variance.items(), key=operator.itemgetter(1))
-
         matrix_t_sorted = []
         for i in range(len(sorted_col_var)):
             col = sorted_col_var[i][0]
             matrix_t_sorted.append(matrix_t[col])
-        return SurveyMatrix(min_value=self.min_value, max_value=self.max_value,
-                            matrix=np.array(matrix_t_sorted).transpose(), survey_title=self.survey_title)
+        return SurveyMatrix(min_value=self.min_value, max_value=self.max_value, questions=self.questions,
+                            users=self.users, matrix=np.array(matrix_t_sorted).transpose(),
+                            survey_title=self.survey_title)
 
     def sort_by_col_goodness(self):
         col_goodness = {}
@@ -122,26 +122,25 @@ class SurveyMatrix(object):
             bad_el = sum([x ** 5 for x in matrix_t[c] if x < 0])
             col_goodness[c] = sum(matrix_t[c]) + bad_el + good_el
         sorted_col_good = sorted(col_goodness.items(), key=operator.itemgetter(1))
-
         matrix_col_sorted = []
         for i in range(len(sorted_col_good)):
             col = sorted_col_good[i][0]
             matrix_col_sorted.append(matrix_t[col])
-        return SurveyMatrix(min_value=self.min_value, max_value=self.max_value,
-                            matrix=np.array(matrix_col_sorted).transpose(), survey_title=self.survey_title)
+        return SurveyMatrix(min_value=self.min_value, max_value=self.max_value, questions=self.questions,
+                            users=self.users, matrix=np.array(matrix_col_sorted).transpose(),
+                            survey_title=self.survey_title)
 
     def sort_by_dendogram(self):
         matrix = self.matrix
         Z = hierarchy.linkage(matrix)
         dn = hierarchy.dendrogram(Z)
         sorted_by_dn = dn['leaves']
-
         matrix_dn_sorted = []
         for i in range(len(sorted_by_dn)):
             row = sorted_by_dn[i]
             matrix_dn_sorted.append(matrix[row])
-        return SurveyMatrix(min_value=self.min_value, max_value=self.max_value,
-                            matrix=np.array(matrix_dn_sorted), survey_title=self.survey_title)
+        return SurveyMatrix(min_value=self.min_value, max_value=self.max_value, questions=self.questions,
+                            users=self.users, matrix=np.array(matrix_dn_sorted), survey_title=self.survey_title)
 
     def obj_function(self):
         matrix = self.matrix
@@ -157,7 +156,6 @@ class SurveyMatrix(object):
         x, y, z = self.questions, self.users, self.matrix
         bounds_list = np.arange(self.min_value, self.max_value + 1, bounds_step)
         norm = colors.BoundaryNorm(bounds_list, cmap.N)
-        print norm
 
         # Plot it out
         fig, ax = plt.subplots()
@@ -179,7 +177,7 @@ class SurveyMatrix(object):
         ax.set_yticklabels(y, minor=False)
 
         # Rotate the x axis ticks
-        plt.xticks(rotation=45)
+        plt.xticks(rotation=90)
         plt.show()
 
     def plotly_heatmap(self, color_list=['red', 'yellow', 'green'], bounds_list=[0, 3, 6, 10]):
