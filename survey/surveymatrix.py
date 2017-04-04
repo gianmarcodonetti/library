@@ -2,11 +2,35 @@ import numpy as np
 from scipy.cluster import hierarchy
 from random import randint
 import operator
+import itertools
+import string
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from plotly import offline
 import plotly.graph_objs as go
-import itertools
+
+
+def create_survey_matrix(data, value_type='actual', grouping_cols=['name', 'macro area', 'micro area']):
+    """
+    Given a dataframe with survey results, create the actual matrix to be nested in a Survey Matrix object.
+    :param data: dataframe, containing all the results from a survey (indexed by user and question)
+    :param value_type: string, which value to consider per question
+    :param grouping_cols: list of strings, where to group values
+    :return: the actual matrix for the Survey Matrix, the list of the users, the list of the questions
+    """
+    printable = set(string.printable)
+    actual_matrix = []
+    name_index, question_index = [], []
+    for group_name, grp in data.groupby(grouping_cols):
+        user_name = filter(lambda x: x in printable, group_name[0])
+        question = ('\n').join(group_name[1:])
+        if user_name not in name_index:
+            name_index.append(user_name)
+            actual_matrix.append([])
+        if question not in question_index:
+            question_index.append(question)
+        actual_matrix[-1].append(grp.mean()[value_type])
+    return actual_matrix, name_index, question_index
 
 
 def user_random_answer(min_value=-2, max_value=2):
@@ -57,7 +81,8 @@ class SurveyMatrix(object):
         assert len(self.questions) == self.n_questions, "Number of questions mismatch"
 
     def __str__(self):
-        result = self.survey_title + "\n" + str(self.matrix)
+        result = "{}\n{} users x {} questions\n{}".format(self.survey_title, self.n_users, self.n_questions,
+                                                          self.matrix)
         return result
 
     def sort_by_row_goodness(self):
@@ -106,7 +131,8 @@ class SurveyMatrix(object):
                             matrix=np.array(matrix_col_sorted).transpose(), survey_title=self.survey_title)
 
     def sort_by_dendogram(self):
-        Z = hierarchy.linkage(self.matrix)
+        matrix = self.matrix
+        Z = hierarchy.linkage(matrix)
         dn = hierarchy.dendrogram(Z)
         sorted_by_dn = dn['leaves']
 
@@ -118,23 +144,24 @@ class SurveyMatrix(object):
                             matrix=np.array(matrix_dn_sorted), survey_title=self.survey_title)
 
     def obj_function(self):
+        matrix = self.matrix
         total = 0
-        for i in range(len(self.matrix) - 1):
-            for j in range(len(self.matrix[i]) - 1):
-                total += abs(self.matrix[i][j] - self.matrix[i][j + 1]) + abs(
-                    self.matrix[i][j] - self.matrix[i + 1][j]) + abs(self.matrix[i][j] - self.matrix[i + 1][j + 1])
+        for i in range(len(matrix) - 1):
+            for j in range(len(matrix[i]) - 1):
+                total += abs(matrix[i][j] - matrix[i][j + 1]) + abs(
+                    matrix[i][j] - matrix[i + 1][j]) + abs(matrix[i][j] - matrix[i + 1][j + 1])
         return total
 
-    def plot_heatmap(self, color_list=['red', 'yellow', 'green'], bounds_list=[0, 3, 6, 10]):
+    def plot_heatmap(self, cmap=colors.ListedColormap(['red', 'yellow', 'green']), bounds_step=1):
         title = self.survey_title
         x, y, z = self.questions, self.users, self.matrix
-
-        my_cmap = colors.ListedColormap(color_list)
-        norm = colors.BoundaryNorm(bounds_list, my_cmap.N)
+        bounds_list = np.arange(self.min_value, self.max_value + 1, bounds_step)
+        norm = colors.BoundaryNorm(bounds_list, cmap.N)
+        print norm
 
         # Plot it out
         fig, ax = plt.subplots()
-        heatmap = ax.pcolor(z, cmap=my_cmap, norm=norm, alpha=0.8)
+        heatmap = ax.pcolor(z, cmap=cmap, norm=norm, alpha=0.8)
         plt.colorbar(heatmap)
 
         # Format
@@ -164,8 +191,8 @@ class SurveyMatrix(object):
 
         colorscale = []
         for i_color in range(len(color_list)):
-            colorscale.append([bounds_list[i_color]/10.0, color_list[i_color]])
-            colorscale.append([bounds_list[i_color + 1]/10.0, color_list[i_color]])
+            colorscale.append([bounds_list[i_color] / 10.0, color_list[i_color]])
+            colorscale.append([bounds_list[i_color + 1] / 10.0, color_list[i_color]])
         # print colorscale
 
         trace = go.Heatmap(x=x, y=y, z=z, colorscale=colorscale, showscale=True)
