@@ -1,7 +1,6 @@
 matplotlib
 scipy
 pandas
-random
 operator
 string
 plotly
