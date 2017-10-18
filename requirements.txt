@@ -1,5 +1,4 @@
 matplotlib
 scipy
 pandas
-string
 plotly
