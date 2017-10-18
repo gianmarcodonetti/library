@@ -1,9 +1,6 @@
-numpy
 matplotlib
 scipy
 pandas
-itertools
-
 random
 operator
 string
