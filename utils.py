@@ -11,8 +11,36 @@ import matplotlib.pyplot as plt
 from math import radians, cos, sin, asin, sqrt
 from scipy.spatial.distance import euclidean
 import itertools
+import pandas as pd
 
-def show_exec_time(startPoint, initialString = "", verbose=True):
+
+def optimize_memory_usage(df, types_to_numeric=None, types_to_category=None, verbose=True):
+    df_to_optimize = df.copy()
+    if types_to_numeric is None:
+        types_to_numeric = ['float', 'integer']
+    if types_to_category is None:
+        types_to_category = ['object']
+    # To numeric
+    for type_to_numeric in types_to_numeric:
+        type_to_numeric_columns = df_to_optimize.select_dtypes(include=[type_to_numeric]).columns
+        for col in type_to_numeric_columns:
+            df_to_optimize[col] = pd.to_numeric(df_to_optimize[col], downcast=type_to_numeric)
+    # To category
+    for type_to_category in types_to_category:
+        type_to_category_columns = df_to_optimize.select_dtypes(include=[type_to_category]).columns
+        for col in type_to_category_columns:
+            if len(df_to_optimize[col].unique()) < len(df_to_optimize[col]) / 4:
+                df_to_optimize[col] = df_to_optimize[col].astype('category')
+    if verbose:
+        memory_before_mb = df.memory_usage(deep=True).sum() / (2.0 ** 20)
+        print "Memory usage before:\t\t\t", memory_before_mb, "MB"
+        memory_after_mb = df_to_optimize.memory_usage(deep=True).sum() / (2.0 ** 20)
+        print "Memory usage after:\t\t\t", memory_after_mb, "MB"
+        print "Percentage of the optimized file:\t", memory_after_mb / memory_before_mb * 100.0, "%"
+    return df_to_optimize
+
+
+def show_exec_time(startPoint, initialString="", verbose=True):
     """
     Compute the execution time from an initial starting point.
     You can also pass me a string to print out at the end of computation.
@@ -28,13 +56,14 @@ def show_exec_time(startPoint, initialString = "", verbose=True):
     """
     eex = time.time()
     seconds = round(eex - startPoint, 2)
-    minutes = (seconds/60)
-    hours = int(minutes/60)
+    minutes = (seconds / 60)
+    hours = int(minutes / 60)
     minutes = int(minutes % 60)
     seconds = round(seconds % 60, 2)
     if verbose:
-        print "\n- "+initialString+" Execution time: %sh %sm %ss -" % (hours, minutes, seconds)
+        print "\n- " + initialString + " Execution time: %sh %sm %ss -" % (hours, minutes, seconds)
     return eex - startPoint
+
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -53,12 +82,13 @@ def haversine(lon1, lat1, lon2, lat2):
     # convert decimal degrees to radians 
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
     # haversine formula 
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a)) 
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * asin(sqrt(a))
     km = 6367 * c
     return km
+
 
 def manhattan_distance(cell1, cell2):
     """
@@ -76,7 +106,8 @@ def manhattan_distance(cell1, cell2):
     ver_steps = np.abs(cell1[1] - cell2[1])
     return hor_steps + ver_steps
 
-def no_points_close_to_me(me, points, radius = 100):
+
+def no_points_close_to_me(me, points, radius=100):
     """
     Parameters
     ----------
@@ -95,7 +126,7 @@ def no_points_close_to_me(me, points, radius = 100):
         if dist <= radius:
             number_of_close_points += 1
     if number_of_close_points > 1:
-        result = False    
+        result = False
     return result
 
 
@@ -114,15 +145,15 @@ def cluster_most_representative(cluster, center, field, n=1):
     Returns
     -------
     element: the closest n elemente in the cluster to the center
-    """    
-    all_tuples = [] # will contain each element with its distance from the center
+    """
+    all_tuples = []  # will contain each element with its distance from the center
     for elem in cluster:
         dist = euclidean(elem[field], center)
         all_tuples.append((elem, dist))
-    all_tuples = sorted(all_tuples, key = lambda x: x[1])
+    all_tuples = sorted(all_tuples, key=lambda x: x[1])
     most_representatives = [tup[0] for tup in all_tuples]
     return most_representatives[:n]
-    
+
 
 def compare_clusters(c1, c2):
     """
@@ -175,7 +206,7 @@ def compare_clusters(c1, c2):
             if name == e2['name'] and label == e2['label']:
                 matchings.append(name)
     # Returns the labellings, the matchings, the accuracy, and the renaming dictionary
-    return (c1, c2, matchings, best['matchings']/len(c1), re_label)
+    return (c1, c2, matchings, best['matchings'] / len(c1), re_label)
 
 
 def plot_confusion_matrix(cm, classes, normalize=False, title="",
@@ -184,10 +215,10 @@ def plot_confusion_matrix(cm, classes, normalize=False, title="",
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
-    accuracy = sum(cm.diagonal())/sum([sum(row) for row in cm])
+    accuracy = sum(cm.diagonal()) / sum([sum(row) for row in cm])
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     if title:
-        plt.title(title + "\nAccuracy "+str(round(accuracy*100, 2))+"%")
+        plt.title(title + "\nAccuracy " + str(round(accuracy * 100, 2)) + "%")
     plt.colorbar()
     tick_marks = np.arange(len(classes))
     plt.xticks(tick_marks, classes)
@@ -207,8 +238,8 @@ def plot_confusion_matrix(cm, classes, normalize=False, title="",
                  horizontalalignment="center",
                  color="white" if cm[i, j] > thresh else "black")
 
-    plt.ylabel(cluster_names[0]+' cluster label')
-    plt.xlabel(cluster_names[1]+' cluster label')
+    plt.ylabel(cluster_names[0] + ' cluster label')
+    plt.xlabel(cluster_names[1] + ' cluster label')
     plt.tight_layout()
     pass
 
@@ -217,107 +248,97 @@ def test_compare_cluster():
     """ Testing the function compare_clusters() """
     import os, pickle
     workspace = 'C:/Users/Giammi/OneDrive/Università/TESI/'
-    os.chdir(workspace)    
-    
-    
+    os.chdir(workspace)
+
     """ TEST 1.1 : Time VS Geo """
     time = open('./time_response/clustering/all_ftest.pickle', 'rb')
     all_ftest = pickle.load(time)
     accuracy = {}
     for PC in [2, 3, 4, 5, 6, 7, 8, 9, 10, 21, 42]:
-        geo = open('./geo_response/clustering/all_features_final_map_PC'+str(PC)+'.pickle', 'rb')
+        geo = open('./geo_response/clustering/all_features_final_map_PC' + str(PC) + '.pickle', 'rb')
         all_features = pickle.load(geo)
-        
+
         c1 = [{'name': elem['brand'], 'label': elem['label']} for elem in all_ftest]
         c2 = [{'name': elem['name'], 'label': elem['label']} for elem in all_features]
-        
+
         accuracy[PC] = compare_clusters(c1, c2)[3]
-    
-    
+
     """ TEST 1.2 : Location VS Summary """
     location = open('./geo_response/clustering/all_features_location_time.pickle', 'rb')
     location = pickle.load(location)
     summary = open('./brand_summary/all_features_brand_summary_PC2.pickle', 'rb')
     summary = pickle.load(summary)
-    
+
     c1 = [{'name': elem['name'], 'label': elem['label']} for elem in location]
     c2 = [{'name': elem['name'], 'label': elem['label']} for elem in summary]
-    
+
     compare_clusters(c1, c2)[3]
-    
-    
+
     """ TEST 1.3 : all together """
     PC = 6
-    geo = open('./geo_response/clustering/all_features_final_map_PC'+str(PC)+'.pickle', 'rb')
+    geo = open('./geo_response/clustering/all_features_final_map_PC' + str(PC) + '.pickle', 'rb')
     all_features = pickle.load(geo)
-    
+
     c1 = [{'name': elem['brand'], 'label': elem['label']} for elem in all_ftest]
     c2 = [{'name': elem['name'], 'label': elem['label']} for elem in summary]
     compare_clusters(c1, c2)[3]
-    
-    
+
     """ TEST 2 """
     c1 = [
-            {'name' : 'A', 'label': 0},
-            {'name' : 'B', 'label': 0},
-            {'name' : 'C', 'label': 1},
-            {'name' : 'D', 'label': 1},
-            {'name' : 'E', 'label': 2},
-            {'name' : 'F', 'label': 2},
-            {'name' : 'G', 'label': 3},   
-            {'name' : 'H', 'label': 3},
-            {'name' : 'I', 'label': 3}, 
+        {'name': 'A', 'label': 0},
+        {'name': 'B', 'label': 0},
+        {'name': 'C', 'label': 1},
+        {'name': 'D', 'label': 1},
+        {'name': 'E', 'label': 2},
+        {'name': 'F', 'label': 2},
+        {'name': 'G', 'label': 3},
+        {'name': 'H', 'label': 3},
+        {'name': 'I', 'label': 3},
     ]
     c2 = [
-            {'name' : 'A', 'label': 1},
-            {'name' : 'B', 'label': 1},
-            {'name' : 'C', 'label': 2},
-            {'name' : 'D', 'label': 2},
-            {'name' : 'E', 'label': 3},
-            {'name' : 'F', 'label': 3},
-            {'name' : 'G', 'label': 0},   
-            {'name' : 'H', 'label': 0},
-            {'name' : 'I', 'label': 0}, 
+        {'name': 'A', 'label': 1},
+        {'name': 'B', 'label': 1},
+        {'name': 'C', 'label': 2},
+        {'name': 'D', 'label': 2},
+        {'name': 'E', 'label': 3},
+        {'name': 'F', 'label': 3},
+        {'name': 'G', 'label': 0},
+        {'name': 'H', 'label': 0},
+        {'name': 'I', 'label': 0},
     ]
     result = compare_clusters(c1, c2)
     assert len(result[2]) == len(c1) and result[3] == 1
-    
-    
-    
+
     """ TEST 3 """
     c2 = [
-            {'name' : 'A', 'label': 2},
-            {'name' : 'B', 'label': 2},
-            {'name' : 'C', 'label': 0},
-            {'name' : 'D', 'label': 0},
-            {'name' : 'E', 'label': 1},
-            {'name' : 'F', 'label': 1},
-            {'name' : 'G', 'label': 1},   
-            {'name' : 'H', 'label': 3},
-            {'name' : 'I', 'label': 3}, 
+        {'name': 'A', 'label': 2},
+        {'name': 'B', 'label': 2},
+        {'name': 'C', 'label': 0},
+        {'name': 'D', 'label': 0},
+        {'name': 'E', 'label': 1},
+        {'name': 'F', 'label': 1},
+        {'name': 'G', 'label': 1},
+        {'name': 'H', 'label': 3},
+        {'name': 'I', 'label': 3},
     ]
     result = compare_clusters(c1, c2)
-    assert len(result[2]) == len(c1) - 1 and result[3] == (len(c2)-1)/len(c1)
-    
-    
-    
+    assert len(result[2]) == len(c1) - 1 and result[3] == (len(c2) - 1) / len(c1)
+
     """ TEST 4 """
     c1 = [
-            {'name' : 'A', 'label': 0},
-            {'name' : 'B', 'label': 0},
-            {'name' : 'C', 'label': 1},
-            {'name' : 'D', 'label': 1},
+        {'name': 'A', 'label': 0},
+        {'name': 'B', 'label': 0},
+        {'name': 'C', 'label': 1},
+        {'name': 'D', 'label': 1},
     ]
     c2 = [
-            {'name' : 'A', 'label': 1},
-            {'name' : 'B', 'label': 1},
-            {'name' : 'C', 'label': 0},
-            {'name' : 'D', 'label': 0},
+        {'name': 'A', 'label': 1},
+        {'name': 'B', 'label': 1},
+        {'name': 'C', 'label': 0},
+        {'name': 'D', 'label': 0},
     ]
     result = compare_clusters(c1, c2)
-    assert len(result[2]) == len(c1) and result[3] == (len(c2))/len(c1)
-    
+    assert len(result[2]) == len(c1) and result[3] == (len(c2)) / len(c1)
+
     # Exit the test case
     pass
-
-
