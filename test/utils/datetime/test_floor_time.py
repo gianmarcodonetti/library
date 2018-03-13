@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from big_data_projects.plant.utils import floor_datetime
+from giammis.utils.datetime import floor_datetime
 
 
 class FloorDatetimeTest(unittest.TestCase):

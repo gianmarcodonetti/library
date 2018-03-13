@@ -1,6 +1,6 @@
 import unittest
 
-from big_data_projects.plant.utils import pipe_functions
+from giammis.utils.generic import pipe_functions
 
 
 def foo(x):

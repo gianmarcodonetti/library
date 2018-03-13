@@ -1,6 +1,6 @@
 import unittest
 
-from big_data_projects.plant.utils import merge_dictionaries
+from giammis.utils.generic import merge_dictionaries
 
 
 class MergeDictionariesTest(unittest.TestCase):

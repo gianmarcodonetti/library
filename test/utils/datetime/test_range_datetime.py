@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta
 from types import ListType
 
-from big_data_projects.plant.utils import range_datetime
+from giammis.utils.datetime import range_datetime
 
 
 class RangeDatetimeTest(unittest.TestCase):

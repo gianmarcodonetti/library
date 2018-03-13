@@ -1,6 +1,6 @@
 import unittest
 
-from big_data_projects.plant.utils import percentage_levels_round_up
+from giammis.utils.generic import percentage_levels_round_up
 
 EPSILON = 0.00001
 OPACITY_LEVELS = {

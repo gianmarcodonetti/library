@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from big_data_projects.plant.utils import round_datetime
+from giammis.utils.datetime import round_datetime
 
 
 class RoundDatetimeTest(unittest.TestCase):

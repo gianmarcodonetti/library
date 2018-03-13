@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from big_data_projects.plant.utils import time_units_touched
+from giammis.utils.datetime import time_units_touched
 
 
 class TimeUnitsTouchedTest(unittest.TestCase):
