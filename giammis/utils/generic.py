@@ -1,3 +1,6 @@
+import time
+
+
 def merge_dictionaries(list_of_dict, keys_to_remove=None):
     """Given a list of dictionaries, merge them in a single one, with priorities on the last ones.
 
@@ -66,3 +69,28 @@ def percentage_levels_round_up(x, levels):
 
 def identity_func(x):
     return x
+
+
+def show_exec_time(startPoint, initialString="", verbose=True):
+    """
+    Compute the execution time from an initial starting point.
+    You can also pass me a string to print out at the end of computation.
+
+    Parameters
+    ----------
+    startPoint : float, timestamp of the starting point
+    initialString : string to output on the console, before the execution time
+
+    Returns
+    -------
+    endPoint - startPoint, the difference between the two timestamps
+    """
+    eex = time.time()
+    seconds = round(eex - startPoint, 2)
+    minutes = (seconds / 60)
+    hours = int(minutes / 60)
+    minutes = int(minutes % 60)
+    seconds = round(seconds % 60, 2)
+    if verbose:
+        print "\n- " + initialString + " Execution time: %sh %sm %ss -" % (hours, minutes, seconds)
+    return eex - startPoint

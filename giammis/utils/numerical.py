@@ -1,91 +1,30 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul 20 10:41:33 2016
-
-@author: Giammi
-"""
-
-import time
 import numpy as np
-import matplotlib.pyplot as plt
-from math import radians, cos, sin, asin, sqrt
-from scipy.spatial.distance import euclidean
 import itertools
-import pandas as pd
-
-
-def optimize_memory_usage(df, types_to_numeric=None, types_to_category=None, verbose=True):
-    df_to_optimize = df.copy()
-    if types_to_numeric is None:
-        types_to_numeric = ['float', 'integer']
-    if types_to_category is None:
-        types_to_category = ['object']
-    # To numeric
-    for type_to_numeric in types_to_numeric:
-        type_to_numeric_columns = df_to_optimize.select_dtypes(include=[type_to_numeric]).columns
-        for col in type_to_numeric_columns:
-            df_to_optimize[col] = pd.to_numeric(df_to_optimize[col], downcast=type_to_numeric)
-    # To category
-    for type_to_category in types_to_category:
-        type_to_category_columns = df_to_optimize.select_dtypes(include=[type_to_category]).columns
-        for col in type_to_category_columns:
-            if len(df_to_optimize[col].unique()) < len(df_to_optimize[col]) / 4:
-                df_to_optimize[col] = df_to_optimize[col].astype('category')
-    if verbose:
-        memory_before_mb = df.memory_usage(deep=True).sum() / (2.0 ** 20)
-        print "Memory usage before:\t\t\t", memory_before_mb, "MB"
-        memory_after_mb = df_to_optimize.memory_usage(deep=True).sum() / (2.0 ** 20)
-        print "Memory usage after:\t\t\t", memory_after_mb, "MB"
-        print "Percentage of the optimized file:\t", memory_after_mb / memory_before_mb * 100.0, "%"
-    return df_to_optimize
-
-
-def show_exec_time(startPoint, initialString="", verbose=True):
-    """
-    Compute the execution time from an initial starting point.
-    You can also pass me a string to print out at the end of computation.
-    
-    Parameters
-    ----------
-    startPoint : float, timestamp of the starting point
-    initialString : string to output on the console, before the execution time
-    
-    Returns
-    -------
-    endPoint - startPoint, the difference between the two timestamps
-    """
-    eex = time.time()
-    seconds = round(eex - startPoint, 2)
-    minutes = (seconds / 60)
-    hours = int(minutes / 60)
-    minutes = int(minutes % 60)
-    seconds = round(seconds % 60, 2)
-    if verbose:
-        print "\n- " + initialString + " Execution time: %sh %sm %ss -" % (hours, minutes, seconds)
-    return eex - startPoint
+import math
+from scipy.spatial.distance import euclidean
 
 
 def haversine(lon1, lat1, lon2, lat2):
     """
-    Calculate the great circle distance between two points 
+    Calculate the great circle distance between two points
     on the earth (specified in decimal degrees).
-    
+
     Parameters
     ----------
     lon1, lat1 : float, longitude and latitude of the first point
     lon2, lat2 : float, longitude and latitude of the second point
-    
+
     Returns
     -------
     km : float, the distance between the two points, expressed in kilometers
     """
-    # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-    # haversine formula 
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
+    # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    c = 2 * asin(sqrt(a))
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    c = 2 * math.asin(math.sqrt(a))
     km = 6367 * c
     return km
 
@@ -96,7 +35,7 @@ def manhattan_distance(cell1, cell2):
     ----------
     cell1 : 2d tuple-like, the first cell in a 2-dimensional grid
     cell2 : 2d tuple-like, the second cell in a 2-dimensional grid
-    
+
     Returns
     -------
     distance = horizontal steps + vertical steps, the total number of steps
@@ -114,10 +53,10 @@ def no_points_close_to_me(me, points, radius=100):
     me : tuple-like, the coordinates of the considered point
     points : list-like of tuple-like, all the other point in the world
     radius : the radius where 'me' should be alone
-    
+
     Returns
     -------
-    result : true if the point is alone, false otherwise    
+    result : true if the point is alone, false otherwise
     """
     result = True
     number_of_close_points = 0
@@ -134,14 +73,14 @@ def cluster_most_representative(cluster, center, field, n=1):
     """
     Find the most representative element in the cluster,
     in terms of euclidean distance from the center
-    
+
     Parameters
     ----------
     cluster: list-like, set of all the elements in the cluster. Each element must be a dictionary
     center: center of the cluster above
     field: string, the key for obtaining the values used for the clustering
     n: default 1, number of representatives per cluster
-    
+
     Returns
     -------
     element: the closest n elemente in the cluster to the center
@@ -159,12 +98,12 @@ def compare_clusters(c1, c2):
     """
     Compare two different labellings on the same set of elements.
     Take into account only the co-appearing elements if there are some problems.
-    
+
     Parameters
     ----------
     c1: first labelling, list of dict. Each dict should contain the name and the label
     c2: second labelling, as above
-    
+
     Returns
     -------
     new_c1, new_c2: the new labellings (only the second could be modified)
@@ -207,41 +146,6 @@ def compare_clusters(c1, c2):
                 matchings.append(name)
     # Returns the labellings, the matchings, the accuracy, and the renaming dictionary
     return (c1, c2, matchings, best['matchings'] / len(c1), re_label)
-
-
-def plot_confusion_matrix(cm, classes, normalize=False, title="",
-                          cmap=plt.cm.Blues, cluster_names=['First', 'Second']):
-    """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
-    """
-    accuracy = sum(cm.diagonal()) / sum([sum(row) for row in cm])
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    if title:
-        plt.title(title + "\nAccuracy " + str(round(accuracy * 100, 2)) + "%")
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes)
-    plt.yticks(tick_marks, classes)
-
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print "Normalized confusion matrix"
-    else:
-        print 'Confusion matrix, without normalization'
-
-    print cm
-
-    thresh = cm.max() / 2.
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, cm[i, j],
-                 horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
-
-    plt.ylabel(cluster_names[0] + ' cluster label')
-    plt.xlabel(cluster_names[1] + ' cluster label')
-    plt.tight_layout()
-    pass
 
 
 def test_compare_cluster():
