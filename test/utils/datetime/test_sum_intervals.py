@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from giammis.utils.datetime import sum_intervals
+from giammis.utils.gdatetime import sum_intervals
 
 
 class SumIntervalsTest(unittest.TestCase):

@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta
 from types import GeneratorType
 
-from giammis.utils.datetime import xrange_datetime
+from giammis.utils.gdatetime import xrange_datetime
 
 
 class XRangeDatetimeTest(unittest.TestCase):
