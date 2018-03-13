@@ -2,4 +2,4 @@ matplotlib
 scipy
 pandas
 plotly
-math
+
