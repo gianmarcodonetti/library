@@ -1,4 +1,5 @@
 import time
+from functools import reduce
 
 
 def merge_dictionaries(list_of_dict, keys_to_remove=None):
@@ -92,5 +93,5 @@ def show_exec_time(startPoint, initialString="", verbose=True):
     minutes = int(minutes % 60)
     seconds = round(seconds % 60, 2)
     if verbose:
-        print "\n- " + initialString + " Execution time: %sh %sm %ss -" % (hours, minutes, seconds)
+        print("\n- " + initialString + " Execution time: %sh %sm %ss -" % (hours, minutes, seconds))
     return eex - startPoint

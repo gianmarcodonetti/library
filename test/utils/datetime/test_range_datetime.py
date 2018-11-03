@@ -1,6 +1,5 @@
 import unittest
 from datetime import datetime, timedelta
-from types import ListType
 
 from giammis.utils.gdatetime import range_datetime
 
@@ -11,7 +10,7 @@ class RangeDatetimeTest(unittest.TestCase):
         end = datetime(2017, 1, 2)
         delta = timedelta(hours=1)
         space = range_datetime(start, end, delta)
-        self.assertIsInstance(space, ListType)
+        self.assertIsInstance(space, list)
         pass
 
     def test_length_simple(self):

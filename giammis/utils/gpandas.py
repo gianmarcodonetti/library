@@ -1,6 +1,9 @@
 import pandas as pd
 from collections import Counter
+from functools import reduce
 from sklearn.utils import shuffle
+
+from giammis.utils.generic import identity_func
 
 
 def optimize_memory_usage(df, types_to_numeric=None, types_to_category=None, verbose=False):
@@ -34,9 +37,9 @@ def optimize_memory_usage(df, types_to_numeric=None, types_to_category=None, ver
     if verbose:
         memory_before_mb = df.memory_usage(deep=True).sum() / (2.0 ** 20)
         memory_after_mb = df_to_optimize.memory_usage(deep=True).sum() / (2.0 ** 20)
-        print "Memory usage before:\t\t\t{} MB".format(memory_before_mb)
-        print "Memory usage after:\t\t\t{} MB".format(memory_after_mb)
-        print "Percentage of the optimized file:\t{} %".format(memory_after_mb / memory_before_mb * 100.0)
+        print("Memory usage before:\t\t\t{} MB".format(memory_before_mb))
+        print("Memory usage after:\t\t\t{} MB".format(memory_after_mb))
+        print("Percentage of the optimized file:\t{} %".format(memory_after_mb / memory_before_mb * 100.0))
     return df_to_optimize
 
 
@@ -126,21 +129,20 @@ def enrich_with_lag_information(df, timestamp_col, subject_col, lags=None, verbo
     lag_result = {}
     for lag in lags:
         lag_result[lag] = pd.DataFrame(pd.concat([
-            group
-                .set_index(timestamp_col)
-                .shift(lag)
-                .reset_index() for name, group in df_with_target_sorted.groupby(subject_col)
-        ])).rename(columns=lambda x: x + '_LAG_{}'.format(lag) if x not in [timestamp_col, subject_col] else x,
-                   inplace=False)
+                                                     group
+                                                 .set_index(timestamp_col)
+                                                 .shift(lag)
+                                                 .reset_index() for name, group in
+                                                     df_with_target_sorted.groupby(subject_col)
+                                                     ])).rename(
+            columns=lambda x: x + '_LAG_{}'.format(lag) if x not in [timestamp_col, subject_col] else x,
+            inplace=False)
 
     if verbose:
         for k, v in lag_result.items():
-            print
-            "Lag", k
-            print
-            v.info(memory_usage='deep', verbose=False), "\n"
-        print
-        ""
+            print("Lag", k)
+            print(v.info(memory_usage='deep', verbose=False), "\n")
+        print("")
 
     # Merge all the lags
     df_final = join_multiple(df_copy, lag_result.values(), on=[subject_col, timestamp_col])
@@ -187,23 +189,15 @@ def add_target(df, timestamp_col, subject_col, delta, target_col='STOP_TYPE_PRES
     df_with_target = pd.merge(df, df_to_merge, on=[timestamp_col, subject_col])
 
     if verbose:
-        print
-        "Null situation:\n", df_with_target.notnull().all()
-        print
-        ""
-        print
-        "Micro stop presence distribution: [n^]"
-        print
-        Counter(df_with_target[target])
-        print
-        ""
-        print
-        "Micro stop presence: [%]"
-        print
-        Counter(df_with_target['STOP_TYPE_PRESENCE_230'])[1] / float(
-            sum(Counter(df_with_target['STOP_TYPE_PRESENCE_230']).values()))
-        print
-        ""
+        print("Null situation:\n", df_with_target.notnull().all())
+        print("")
+        print("Micro stop presence distribution: [n^]")
+        print(Counter(df_with_target[target]))
+        print("")
+        print("Micro stop presence: [%]")
+        print(Counter(df_with_target['STOP_TYPE_PRESENCE_230'])[1] / float(
+            sum(Counter(df_with_target['STOP_TYPE_PRESENCE_230']).values())))
+        print("")
 
     return df_with_target, target
 
@@ -238,8 +232,6 @@ def under_sampling(train, target=None, frac=0.66, target_to_under_sample=0, verb
         raise ValueError("Target value '{}' not supported".format(target_to_under_sample))
 
     if verbose:
-        print
-        "0 vs 1 length:\n", len(train_0), len(train_1)
-        print
-        "Under-sampled train length:", len(train)
+        print("0 vs 1 length:\n", len(train_0), len(train_1))
+        print("Under-sampled train length:", len(train))
     return train

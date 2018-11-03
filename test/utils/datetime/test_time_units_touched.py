@@ -9,7 +9,7 @@ class TimeUnitsTouchedTest(unittest.TestCase):
         delta_seconds = 60 * 60 * 24  # 1 day
         duration = 60 * 60 * 3  # 3 hours
         # Completely inside
-        for day in xrange(1, 28):
+        for day in range(1, 28):
             date = datetime(2017, 4, day, 8, 30, 0)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 4, day)]
@@ -20,13 +20,13 @@ class TimeUnitsTouchedTest(unittest.TestCase):
         delta_seconds = 60 * 60 * 24  # 1 day
         duration = 60 * 60 * 3  # 3 hours
         # Starting at the edge
-        for day in xrange(1, 28):
+        for day in range(1, 28):
             date = datetime(2017, 4, day, 0, 0, 0)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 4, day)]
             self.assertEqual(time_units, expected)
         # Ending at the edge
-        for day in xrange(1, 28):
+        for day in range(1, 28):
             date = datetime(2017, 4, day, 21)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 4, day)]
@@ -37,7 +37,7 @@ class TimeUnitsTouchedTest(unittest.TestCase):
         delta_seconds = 60 * 60  # 1 hour
         duration = 60 * 20  # 20 minutes
         # Completely inside
-        for hour in xrange(0, 24):
+        for hour in range(0, 24):
             date = datetime(2017, 11, 17, hour, 20, 0)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 11, 17, hour)]
@@ -48,13 +48,13 @@ class TimeUnitsTouchedTest(unittest.TestCase):
         delta_seconds = 60 * 60  # 1 hour
         duration = 60 * 20  # 20 minutes
         # Starting at the edge
-        for hour in xrange(0, 24):
+        for hour in range(0, 24):
             date = datetime(2017, 11, 17, hour, 0, 0)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 11, 17, hour)]
             self.assertEqual(time_units, expected)
         # Ending at the edge
-        for hour in xrange(0, 24):
+        for hour in range(0, 24):
             date = datetime(2017, 11, 17, hour, 40, 0)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 11, 17, hour)]
@@ -65,7 +65,7 @@ class TimeUnitsTouchedTest(unittest.TestCase):
         delta_seconds = 60  # 1 minute
         duration = 20  # 20 seconds
         # Completely inside
-        for minute in xrange(0, 60):
+        for minute in range(0, 60):
             date = datetime(2017, 11, 17, 10, minute, 20)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 11, 17, 10, minute)]
@@ -76,13 +76,13 @@ class TimeUnitsTouchedTest(unittest.TestCase):
         delta_seconds = 60  # 1 minute
         duration = 20  # 20 seconds
         # Starting at the edges
-        for minute in xrange(0, 60):
+        for minute in range(0, 60):
             date = datetime(2017, 11, 17, 10, minute, 0)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 11, 17, 10, minute)]
             self.assertEqual(time_units, expected)
         # Ending at the edges
-        for minute in xrange(0, 60):
+        for minute in range(0, 60):
             date = datetime(2017, 11, 17, 10, minute, 40)
             time_units = time_units_touched(date, duration_seconds=duration, delta_seconds=delta_seconds)
             expected = [datetime(2017, 11, 17, 10, minute)]
