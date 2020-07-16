@@ -51,6 +51,17 @@ def pipe_functions(functions, zero_value):
     return reduce(lambda res, f: f(res), functions, zero_value)
 
 
+def pipe_map(functions, zero_value):
+    """Pipe a list of map functions to a starting value.
+    Args:
+        functions (list): A sorted list of functions.
+        zero_value (Any): The initial value, the first to be passed to the list of functions.
+    Returns:
+        Any: The input zero value modified in cascade from all the given functions.
+    """
+    return reduce(lambda res, f: map(f, res), functions, zero_value)
+
+
 def percentage_levels_round_up(x, levels):
     """Given a float value between 0.0 and 1.0, assign it to the ceil nearest value in levels list.
 
